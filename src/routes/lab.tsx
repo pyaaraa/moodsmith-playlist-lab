@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { Lab } from '@/features/lab';
+export const Route=createFileRoute('/lab')({head:()=>({meta:[{title:'Algorithm Lab — MoodMix'},{name:'description',content:'Compare measured greedy, dynamic programming and branch and bound playlist sequencing.'},{property:'og:title',content:'Algorithm Lab — MoodMix'},{property:'og:description',content:'Compare measured greedy, dynamic programming and branch and bound playlist sequencing.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Lab});
