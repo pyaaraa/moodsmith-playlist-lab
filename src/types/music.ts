@@ -2,7 +2,7 @@ export const moods = ['Focus', 'Chill', 'Euphoric', 'Melancholic', 'Dreamy', 'La
 export type Mood = typeof moods[number];
 export type Algorithm = 'Greedy' | 'Dynamic Programming' | 'Branch and Bound';
 export interface Track { id: string; title: string; artist: string; genre: string; duration: number; tempo: number; energy: number; valence: number; mood: Mood; artwork: string }
-export interface PlaylistSettings { mood: Mood; energy: number; valence: number; genres: string[]; duration: number; artistGap: number; smoothness: number; startingTrack?: string; algorithm: Algorithm }
+export interface PlaylistSettings { mood: Mood; energy: number; valence: number; genres: string[]; duration: number; artistGap: number; smoothness: number; startingTrack?: string | undefined; algorithm: Algorithm }
 export interface Transition { from: string; to: string; cost: number; explanation: string }
 export interface Evaluation { duration: number; averageEnergy: number; smoothness: number; uniqueArtists: number; totalCost: number; transitions: Transition[] }
 export interface Playlist { id: string; title: string; settings: PlaylistSettings; tracks: Track[]; pinned: string[]; modified: boolean; createdAt: string }

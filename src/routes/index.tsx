@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Discover } from "@/features/discover";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({ library: search.library === true || search.library === 'true' }),
+  validateSearch: (search: Record<string, unknown>): { library?: boolean } => ({ library: search['library'] === true || search['library'] === 'true' }),
   head: () => ({ meta: [
     {title:"Discover — MoodMix"},
     {name:"description",content:"Find your frequency. Discover mood collections, editorial mixes and a diverse music library."},
@@ -16,5 +16,5 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { library } = Route.useSearch();
-  return <Discover showLibrary={library}/>;
+  return <Discover showLibrary={library ?? false}/>;
 }

@@ -13,8 +13,8 @@ export function PlaylistPage(){
  if(!active)return <EmptyState title="A journey waiting to happen" description="Set a mood and generate your first mix."/>;
  const p=active,metrics=algorithmService.evaluate(p.tracks,p.settings);const isSaved=playlists.some(x=>x.id===p.id);
  function edit(tracks:Playlist['tracks']){if(tracks.length<1){setError('Keep at least one track in your mix.');return;}update({...p,tracks,modified:true,pinned:p.pinned.filter(id=>tracks.some(t=>t.id===id))});setSaved(false);}
- function move(i:number,delta:number){const list=[...p.tracks],j=i+delta;if(j<0||j>=list.length)return;[list[i],list[j]]=[list[j],list[i]];edit(list);}
- function shuffle(){const list=[...p.tracks];const positions=list.map((t,i)=>p.pinned.includes(t.id)?-1:i).filter(i=>i>=0);for(let k=positions.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[list[positions[k]],list[positions[j]]]=[list[positions[j]],list[positions[k]]];}edit(list);}
+ function move(i:number,delta:number){const list=[...p.tracks],j=i+delta;if(j<0||j>=list.length)return;const a=list[i],b=list[j];if(!a||!b)return;list[i]=b;list[j]=a;edit(list);}
+ function shuffle(){const list=[...p.tracks];const positions=list.map((t,i)=>p.pinned.includes(t.id)?-1:i).filter(i=>i>=0);for(let k=positions.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));const x=positions[k],y=positions[j];if(x===undefined||y===undefined)continue;const a=list[x],b=list[y];if(!a||!b)continue;list[x]=b;list[y]=a;}edit(list);}
  async function regenerate(){setBusy(true);setError('');try{update(await algorithmService.generate(p.settings,p));}catch(e){setError(e instanceof Error?e.message:'Unable to regenerate.');}finally{setBusy(false);}}
  function exportData(format:'JSON'|'CSV'){
   const quote=(s:string|number)=>`"${String(s).replaceAll('"','""')}"`;

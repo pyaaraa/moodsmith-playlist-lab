@@ -7,7 +7,7 @@ import { algorithmService, algorithms } from '@/services/algorithm';
 import { useMusic } from '@/state/music';
 import { Art, MoodCards, PageHeader, TrackRow } from '@/components/moodmix/shared';
 import type { Mood, PlaylistSettings } from '@/types/music';
-export function Builder({mood,start}:{mood?:Mood;start?:string}){
+export function Builder({mood,start}:{mood?:Mood|undefined;start?:string|undefined}){
  const {activate,preferences}=useMusic();const navigate=useNavigate();const [settings,setSettings]=useState<PlaylistSettings>({...defaultSettings,algorithm:preferences.defaultAlgorithm,...(mood?{mood}:{}),...(start?{startingTrack:start}:{})});const [error,setError]=useState(''),[busy,setBusy]=useState(false);
  const change=<K extends keyof PlaylistSettings>(key:K,value:PlaylistSettings[K])=>{setSettings(s=>({...s,[key]:value}));setError('');};
  const candidates=tracks.filter(t=>!settings.genres.length||settings.genres.includes(t.genre)).sort((a,b)=>(Math.abs(a.energy-settings.energy)+(a.mood===settings.mood?0:30))-(Math.abs(b.energy-settings.energy)+(b.mood===settings.mood?0:30))).slice(0,4);

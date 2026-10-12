@@ -14,7 +14,7 @@ function transition(a:Track,b:Track,s=defaultSettings) {
  return {from:a.id,to:b.id,cost,explanation:`${Math.abs(a.tempo-b.tempo)} BPM tempo difference · ${Math.abs(a.energy-b.energy)} energy points · ${Math.abs(a.valence-b.valence)} valence points. ${a.genre===b.genre?'Shared '+a.genre+' texture.':'A change from '+a.genre+' to '+b.genre+'.'} ${cost<.2?'A gentle transition.':'A more noticeable shift.'}`};
 }
 function evaluate(list:Track[],s=defaultSettings) {
- const transitions=list.slice(1).map((t,i)=>transition(list[i],t,s));
+ const transitions=list.flatMap((t,i)=>{const previous=list[i-1];return previous?[transition(previous,t,s)]:[];});
  const totalCost=transitions.reduce((a,t)=>a+t.cost,0);
  return { duration:list.reduce((a,t)=>a+t.duration,0), averageEnergy:list.length?list.reduce((a,t)=>a+t.energy,0)/list.length:0, smoothness:transitions.length?100*(1-totalCost/transitions.length):100, uniqueArtists:new Set(list.map(t=>t.artist)).size, totalCost, transitions };
 }
@@ -25,30 +25,40 @@ function solve(input:Track[],algorithm:Algorithm,s=defaultSettings,fixed=new Map
  if(algorithm!=='Greedy' && n>10) throw new Error('Exact algorithms support up to 10 selected tracks. Shorten the duration or use Greedy.');
  let transitionsEvaluated=0, statesExplored=0, statesPruned=0;
  const matrix=input.map((a,i)=>input.map((b,j)=>{ if(i===j)return Infinity; transitionsEvaluated++; return s.artistGap===1 && a.artist===b.artist?Infinity:transition(a,b,s).cost; }));
- const allowed=(position:number,j:number)=>!fixed.has(position)||fixed.get(position)===input[j].id;
+ const edge=(i:number,j:number)=>matrix[i]?.[j]??Infinity;
+ const allowed=(position:number,j:number)=>!fixed.has(position)||fixed.get(position)===input[j]?.id;
  if(!allowed(0,0))throw new Error('The starting track conflicts with a pinned opening track.');
  function greedy() {
   const path=[0]; let cost=0;
-  while(path.length<n) { const last=path[path.length-1]; const choices=input.map((_,i)=>i).filter(i=>!path.includes(i)&&allowed(path.length,i)&&!([...fixed.entries()].some(([pos,id])=>pos>path.length&&id===input[i].id))).sort((a,b)=>matrix[last][a]-matrix[last][b]); statesExplored+=choices.length; const next=choices[0]; if(next===undefined||!Number.isFinite(matrix[last][next])) return {path:[] as number[],cost:Infinity}; path.push(next);cost+=matrix[last][next]; }
+  while(path.length<n) { const last=path[path.length-1]??0; const choices=input.map((_,i)=>i).filter(i=>!path.includes(i)&&allowed(path.length,i)&&!([...fixed.entries()].some(([pos,id])=>pos>path.length&&id===input[i]?.id))).sort((a,b)=>edge(last,a)-edge(last,b)); statesExplored+=choices.length; const next=choices[0]; if(next===undefined||!Number.isFinite(edge(last,next))) return {path:[] as number[],cost:Infinity}; path.push(next);cost+=edge(last,next); }
   return {path,cost};
  }
  let best=greedy();
+ if(algorithm==='Greedy'&&!best.path.length){
+  let budget=100000;
+  const feasible=(path:number[],used:Set<number>,cost:number):{path:number[];cost:number}|null=>{
+   statesExplored++;if(--budget<0)return null;if(path.length===n)return {path,cost};const last=path[path.length-1]??0;
+   const choices=input.map((_,i)=>i).filter(i=>!used.has(i)&&allowed(path.length,i)&&Number.isFinite(edge(last,i))&&![...fixed.entries()].some(([pos,id])=>pos>path.length&&id===input[i]?.id)).sort((a,b)=>edge(last,a)-edge(last,b));
+   for(const next of choices){const found=feasible([...path,next],new Set([...used,next]),cost+edge(last,next));if(found)return found;}return null;
+  };best=feasible([0],new Set([0]),0)??best;
+ }
+
  if(algorithm==='Dynamic Programming') {
   const dp=new Map<string,{cost:number;path:number[]}>();dp.set('1:0',{cost:0,path:[0]});
   for(let mask=1;mask<(1<<n);mask++) { if(!(mask&1))continue; const position=mask.toString(2).replace(/0/g,'').length;
    for(let last=0;last<n;last++){ const state=dp.get(`${mask}:${last}`); if(!state)continue; statesExplored++;
-    for(let next=1;next<n;next++){ if(mask&(1<<next)||!allowed(position,next))continue; const cost=state.cost+matrix[last][next], key=`${mask|(1<<next)}:${next}`, old=dp.get(key); if(Number.isFinite(cost)&&(!old||cost<old.cost))dp.set(key,{cost,path:[...state.path,next]}); }
+    for(let next=1;next<n;next++){ if(mask&(1<<next)||!allowed(position,next))continue; const cost=state.cost+edge(last,next), key=`${mask|(1<<next)}:${next}`, old=dp.get(key); if(Number.isFinite(cost)&&(!old||cost<old.cost))dp.set(key,{cost,path:[...state.path,next]}); }
    }
   }
   best={path:[],cost:Infinity};for(let last=0;last<n;last++){const state=dp.get(`${(1<<n)-1}:${last}`);if(state&&state.cost<best.cost)best=state;}
  } else if(algorithm==='Branch and Bound') {
   const visit=(path:number[],mask:number,cost:number)=>{statesExplored++;if(cost>=best.cost){statesPruned++;return;}if(path.length===n){best={path:[...path],cost};return;}
-   const last=path[path.length-1]; const candidates=input.map((_,i)=>i).filter(i=>!(mask&(1<<i))&&allowed(path.length,i)).sort((a,b)=>matrix[last][a]-matrix[last][b]);
-   for(const j of candidates){if(Number.isFinite(matrix[last][j]))visit([...path,j],mask|(1<<j),cost+matrix[last][j]);}
+   const last=path[path.length-1]??0; const candidates=input.map((_,i)=>i).filter(i=>!(mask&(1<<i))&&allowed(path.length,i)).sort((a,b)=>edge(last,a)-edge(last,b));
+   for(const j of candidates){if(Number.isFinite(edge(last,j)))visit([...path,j],mask|(1<<j),cost+edge(last,j));}
   };visit([0],1,0);
  }
  if(!best.path.length)throw new Error('No valid sequence meets the artist or pinned-position constraints. Allow consecutive artists, unpin a track, or change the starting song.');
- return { algorithm,sequence:best.path.map(i=>input[i]),totalCost:best.cost,objectiveScore:100*(1-best.cost/Math.max(n-1,1)),runtime:performance.now()-begin,transitionsEvaluated,statesExplored,statesPruned,guarantee:explanations[algorithm].guarantee };
+ return { algorithm,sequence:best.path.flatMap(i=>{const track=input[i];return track?[track]:[];}),totalCost:best.cost,objectiveScore:100*(1-best.cost/Math.max(n-1,1)),runtime:performance.now()-begin,transitionsEvaluated,statesExplored,statesPruned,guarantee:explanations[algorithm].guarantee };
 }
 function validate(s:PlaylistSettings){if(!Number.isFinite(s.duration)||s.duration<5||s.duration>120)throw new Error('Choose a target duration from 5 to 120 minutes.');for(const x of [s.energy,s.valence,s.smoothness])if(!Number.isFinite(x)||x<0||x>100)throw new Error('Energy, valence and smoothness must be between 0 and 100.');}
 export const algorithmService:AlgorithmService={
@@ -59,7 +69,7 @@ export const algorithmService:AlgorithmService={
   const fixed=new Map<number,string>();previous?.tracks.forEach((t,i)=>{if(previous.pinned.includes(t.id))fixed.set(i,t.id);});
   if(pinned.some(t=>s.genres.length&&!s.genres.includes(t.genre)))throw new Error('A pinned track conflicts with the selected genres. Unpin it or include its genre.');
   const pool=tracks.filter(t=>!s.genres.length||s.genres.includes(t.genre)).sort((a,b)=>rank(a,s)-rank(b,s));
-  const start=tracks.find(t=>t.id===(s.startingTrack??fixed.get(0)))??pinned[0]??pool[0];
+  const start=tracks.find(t=>t.id===(s.startingTrack??fixed.get(0)))??previous?.tracks[0]??pool.find(t=>!pinned.some(p=>p.id===t.id))??pool[0];
   if(!start)throw new Error('No tracks match these genres.');
   if(s.genres.length&&!s.genres.includes(start.genre))throw new Error('The starting track is outside the selected genres.');
   const selected=[start,...pinned.filter(t=>t.id!==start.id)];let seconds=selected.reduce((a,t)=>a+t.duration,0);
