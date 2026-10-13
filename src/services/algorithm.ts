@@ -100,12 +100,15 @@ export function transitionCost(
   const energyDifference = Math.abs(feature(from, "energy") - feature(to, "energy"));
   const valenceDifference = Math.abs(feature(from, "valence") - feature(to, "valence"));
   const tempoDifference = Math.min(Math.abs(from.tempo - to.tempo) / 100, 1);
+  // Higher smoothness makes categorical and repeated-artist changes more expensive;
+  // the feature-distance terms remain directly configurable through the weights.
+  const continuity = 0.5 + settings.smoothness / 100;
   const cost =
     w.energy * energyDifference +
     w.valence * valenceDifference +
     w.tempo * tempoDifference +
-    (from.genre === to.genre ? 0 : w.genreMismatch) +
-    (from.artist === to.artist ? w.sameArtist : 0);
+    (from.genre === to.genre ? 0 : w.genreMismatch * continuity) +
+    (from.artist === to.artist ? w.sameArtist * continuity : 0);
   return {
     from: from.id,
     to: to.id,

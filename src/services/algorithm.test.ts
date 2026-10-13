@@ -92,8 +92,15 @@ describe("MoodMix algorithm service", () => {
       ...defaultSettings,
       transitionWeights: { sameArtist: 0.5 },
     });
-    expect(base.cost).toBeCloseTo(0.5);
+    expect(base.cost).toBeCloseTo(0.65);
     expect(transitionCost(a, { ...b, artist: "two" }, defaultSettings).cost).toBe(0);
+  });
+  it("makes categorical changes costlier when smoothness is increased", () => {
+    const a = { ...at(tracks, 0), energy: 0.5, valence: 0.5, tempo: 100, genre: "A" };
+    const b = { ...at(tracks, 1), energy: 0.5, valence: 0.5, tempo: 100, genre: "B" };
+    expect(transitionCost(a, b, { ...defaultSettings, smoothness: 100 }).cost).toBeGreaterThan(
+      transitionCost(a, b, { ...defaultSettings, smoothness: 0 }).cost,
+    );
   });
   it("rejects empty and duplicate comparison inputs", async () => {
     await expect(algorithmService.compare([])).rejects.toThrow("Select at least");

@@ -1,8 +1,163 @@
-import { Link } from '@tanstack/react-router';
-import { ArrowRight, Music2, Network, Route as RouteIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { PageHeader, SectionHeading } from '@/components/moodmix/shared';
-import { TrackGraph } from '@/components/moodmix/graph';
-import { tracks } from '@/data/library';
-import { algorithms, algorithmService } from '@/services/algorithm';
-export function Learn(){return <><PageHeader eyebrow="BEHIND THE FEELING" title="Music has a beautiful logic." description="From individual songs to a connected journey. Here's what happens in between."/><div className="learn-intro">{[{icon:Music2,title:'Every track is a node',text:'A song has a musical fingerprint: tempo, energy, valence, genre, and artist.'},{icon:Network,title:'Every connection has a cost',text:'Similar features create gentle transitions. Larger differences create a noticeable shift.'},{icon:RouteIcon,title:'A mix is a path',text:'The algorithm visits each selected song once, searching for a connected, low-cost journey.'}].map((s,i)=><div key={s.title}><span className="learn-icon"><s.icon/></span><span className="eyebrow">0{i+1}</span><h2>{s.title}</h2><p>{s.text}</p></div>)}</div><section className="page-section"><SectionHeading title="Hear the idea. See the connections." description="An interactive five-song example. Select a node to inspect its features."/><TrackGraph tracks={tracks.slice(10,15)} path={tracks.slice(10,15)}/></section><section className="cost-model"><div><div className="eyebrow">THE TRANSITION MODEL</div><h2>A good transition<br/>is a small distance.</h2><p>Normalize differences, weight the features, and add them together. Lower cost means a gentler musical change.</p></div><div className="equation-panel"><div className="equation">C(a, b) = s(0.35Δt + 0.35Δe + 0.20Δv + 0.10g) + (1 − s)r</div><dl><div><dt>Δt</dt><dd>Tempo difference ÷ 100, capped at 1</dd></div><div><dt>Δe / Δv</dt><dd>Energy / valence difference ÷ 100</dd></div><div><dt>g</dt><dd>0 for shared genre, 1 for different genres</dd></div><div><dt>s</dt><dd>Transition smoothness setting ÷ 100</dd></div><div><dt>r</dt><dd>0.12 for shared genre, 0 otherwise; variety reward</dd></div></dl></div></section><section className="page-section"><SectionHeading title="Three ways to find a journey" description="One objective. Different search strategies."/><div className="learn-algorithms">{algorithms.map((a,i)=>{const e=algorithmService.explanation(a);return <div key={a}><div className="eyebrow">0{i+1} / {i===0?'HEURISTIC':'EXACT FOR FIXED SET'}</div><h2>{a}</h2><p>{e.summary}</p><div className="complexity-label">Time <strong>{e.complexity}</strong><br/>Space <strong>{e.space}</strong></div><details><summary>What does this guarantee?</summary><p>{e.guarantee} All three use the same nonnegative cost function and fixed starting song.</p></details></div>;})}</div></section><section className="learn-faq"><SectionHeading title="The viva essentials"/>{[{q:'Why do different algorithms produce different sequences?',a:'Greedy makes a local choice and never revisits it. Dynamic programming and branch and bound examine alternatives to minimize the full path cost. Ties can also yield different, equally optimal sequences.'},{q:'Is the whole generated playlist optimal?',a:'No. First, a heuristic ranks songs by mood, energy and valence and selects a set that fits within the target duration. DP and branch and bound are exact only for ordering that fixed set, starting at the selected first track. They do not prove the best subset across the library.'},{q:'Why limit exact algorithms to small mixes?',a:'The number of possible paths grows factorially. Held–Karp improves this to exponential time, which is still expensive. MoodMix limits exact generation to 10 songs and comparisons to 9 songs to keep the browser responsive.'},{q:'How are pins and artist diversity respected?',a:'Pinned tracks remain at their current positions during regeneration. When no consecutive artist repeats is enabled, same-artist transitions are infeasible. Incompatible pinned positions, genre filters or duration constraints produce an explicit error.'},{q:'Where do the music features come from?',a:'The library uses real song titles and artists with illustrative sample metadata and generated editorial artwork. It is not connected to a streaming provider. Costs and benchmarks are computed by the local algorithm service from those sample features.'}].map(f=><details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>)}</section><div className="learn-cta"><h2>Now, put the theory on repeat.</h2><Button asChild><Link to="/lab">Explore the Algorithm Lab<ArrowRight/></Link></Button></div></>;}
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Music2, Network, Route as RouteIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader, SectionHeading } from "@/components/moodmix/shared";
+import { TrackGraph } from "@/components/moodmix/graph";
+import { tracks } from "@/data/library";
+import { algorithms, algorithmService } from "@/services/algorithm";
+export function Learn() {
+  return (
+    <>
+      <PageHeader
+        eyebrow="BEHIND THE FEELING"
+        title="Music has a beautiful logic."
+        description="From individual songs to a connected journey. Here's what happens in between."
+      />
+      <div className="learn-intro">
+        {[
+          {
+            icon: Music2,
+            title: "Every track is a node",
+            text: "A song has a musical fingerprint: tempo, energy, valence, genre, and artist.",
+          },
+          {
+            icon: Network,
+            title: "Every connection has a cost",
+            text: "Similar features create gentle transitions. Larger differences create a noticeable shift.",
+          },
+          {
+            icon: RouteIcon,
+            title: "A mix is a path",
+            text: "The algorithm visits each selected song once, searching for a connected, low-cost journey.",
+          },
+        ].map((s, i) => (
+          <div key={s.title}>
+            <span className="learn-icon">
+              <s.icon />
+            </span>
+            <span className="eyebrow">0{i + 1}</span>
+            <h2>{s.title}</h2>
+            <p>{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <section className="page-section">
+        <SectionHeading
+          title="Hear the idea. See the connections."
+          description="An interactive five-song example. Select a node to inspect its features."
+        />
+        <TrackGraph tracks={tracks.slice(10, 15)} path={tracks.slice(10, 15)} />
+      </section>
+      <section className="cost-model">
+        <div>
+          <div className="eyebrow">THE TRANSITION MODEL</div>
+          <h2>
+            A good transition
+            <br />
+            is a small distance.
+          </h2>
+          <p>
+            Normalize differences, weight the features, and add them together. Lower cost means a
+            gentler musical change.
+          </p>
+        </div>
+        <div className="equation-panel">
+          <div className="equation">C(a, b) = .30Δe + .20Δv + .30Δt + c(.12g + .08r)</div>
+          <dl>
+            <div>
+              <dt>Δt</dt>
+              <dd>Tempo difference ÷ 100, capped at 1</dd>
+            </div>
+            <div>
+              <dt>Δe / Δv</dt>
+              <dd>Normalized energy / valence difference</dd>
+            </div>
+            <div>
+              <dt>g</dt>
+              <dd>1 for a genre change, otherwise 0</dd>
+            </div>
+            <div>
+              <dt>c</dt>
+              <dd>0.5 + transition smoothness setting ÷ 100</dd>
+            </div>
+            <div>
+              <dt>r</dt>
+              <dd>1 for the same artist, otherwise 0</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      <section className="page-section">
+        <SectionHeading
+          title="Three ways to find a journey"
+          description="One objective. Different search strategies."
+        />
+        <div className="learn-algorithms">
+          {algorithms.map((a, i) => {
+            const e = algorithmService.explanation(a);
+            return (
+              <div key={a}>
+                <div className="eyebrow">
+                  0{i + 1} / {i === 0 ? "HEURISTIC" : "EXACT FOR FIXED SET"}
+                </div>
+                <h2>{a}</h2>
+                <p>{e.summary}</p>
+                <div className="complexity-label">
+                  Time <strong>{e.complexity}</strong>
+                  <br />
+                  Space <strong>{e.space}</strong>
+                </div>
+                <details>
+                  <summary>What does this guarantee?</summary>
+                  <p>
+                    {e.guarantee} All three use the same nonnegative cost function and fixed
+                    starting song.
+                  </p>
+                </details>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+      <section className="learn-faq">
+        <SectionHeading title="The viva essentials" />
+        {[
+          {
+            q: "Why do different algorithms produce different sequences?",
+            a: "Greedy makes a local choice and never revisits it. Dynamic programming and branch and bound examine alternatives to minimize the full path cost. Ties can also yield different, equally optimal sequences.",
+          },
+          {
+            q: "Is the whole generated playlist optimal?",
+            a: "No. First, a heuristic ranks songs by mood, energy and valence and selects a set that fits within the target duration. DP and branch and bound are exact only for ordering that fixed set, starting at the selected first track. They do not prove the best subset across the library.",
+          },
+          {
+            q: "Why limit exact algorithms to small mixes?",
+            a: "The number of possible paths grows factorially. Held–Karp improves this to exponential time, which is still expensive. MoodMix limits exact generation to 10 songs and comparisons to 9 songs to keep the browser responsive.",
+          },
+          {
+            q: "How are pins and artist diversity respected?",
+            a: "Pinned tracks remain at their current positions during regeneration. When no consecutive artist repeats is enabled, same-artist transitions are infeasible. Incompatible pinned positions, genre filters or duration constraints produce an explicit error.",
+          },
+          {
+            q: "Where do the music features come from?",
+            a: "The library uses real song titles and artists with illustrative sample metadata and generated editorial artwork. It is not connected to a streaming provider. Costs and benchmarks are computed by the local algorithm service from those sample features.",
+          },
+        ].map((f) => (
+          <details key={f.q}>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </section>
+      <div className="learn-cta">
+        <h2>Now, put the theory on repeat.</h2>
+        <Button asChild>
+          <Link to="/lab">
+            Explore the Algorithm Lab
+            <ArrowRight />
+          </Link>
+        </Button>
+      </div>
+    </>
+  );
+}

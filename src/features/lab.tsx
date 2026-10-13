@@ -18,7 +18,6 @@ export function Lab() {
   async function run() {
     setBusy(true);
     setError("");
-    await new Promise((r) => setTimeout(r, 25));
     try {
       setResult(await algorithmService.compare(dataset));
     } catch (e) {
