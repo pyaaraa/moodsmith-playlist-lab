@@ -1,21 +1,106 @@
-import mountain from '@/assets/night-mountains.jpg';
-import pink from '@/assets/pink-clouds.jpg';
-import blue from '@/assets/blue-hour.jpg';
-import forest from '@/assets/forest.jpg';
-import type { Track, Mood, PlaylistSettings } from '@/types/music';
+import mountain from "@/assets/night-mountains.jpg";
+import pink from "@/assets/pink-clouds.jpg";
+import blue from "@/assets/blue-hour.jpg";
+import forest from "@/assets/forest.jpg";
+import type { Track, Mood, PlaylistSettings } from "@/types/music";
 export const artwork = { mountain, pink, blue, forest };
 // Real song identities; audio features are illustrative sample metadata, not streaming-provider measurements.
 const records: [string, string, string, number, number, number, number, Mood][] = [
-['Weightless','Marconi Union','Ambient',489,60,15,45,'Focus'],['A Walk','Tycho','Electronic',317,100,45,68,'Focus'],['First Breath After Coma','Explosions in the Sky','Post-Rock',573,80,48,40,'Focus'],['Open Eye Signal','Jon Hopkins','Electronic',472,123,72,52,'Focus'],['Says','Nils Frahm','Ambient',482,90,35,45,'Focus'],['Near Light','Ólafur Arnalds','Classical',208,72,22,38,'Focus'],['Cirrus','Bonobo','Electronic',352,100,55,62,'Focus'],['Dayvan Cowboy','Boards of Canada','Electronic',300,84,42,55,'Focus'],['Experience','Ludovico Einaudi','Classical',315,90,40,48,'Focus'],['An Ending (Ascent)','Brian Eno','Ambient',266,65,12,51,'Focus'],
-['Sunset Lover','Petit Biscuit','Electronic',198,91,45,70,'Chill'],['Tadow','Masego & FKJ','Jazz',302,122,55,75,'Chill'],['Show Me How','Men I Trust','Indie',215,100,32,48,'Chill'],['Friday Morning','Khruangbin','Soul',410,80,30,65,'Chill'],['Pink + White','Frank Ocean','R&B',184,160,49,64,'Chill'],['Get You','Daniel Caesar','R&B',278,74,30,54,'Chill'],['Loving Is Easy','Rex Orange County','Indie',155,117,62,90,'Chill'],['Coffee','beabadoobee','Indie',126,90,25,55,'Chill'],['Telescope','Cage the Elephant','Indie',228,94,48,53,'Chill'],['Breathe','Télépopmusik','Electronic',278,100,35,63,'Chill'],
-['Midnight City','M83','Electronic',244,105,82,80,'Euphoric'],['Something About Us','Daft Punk','Electronic',232,100,50,72,'Euphoric'],['Innerbloom','RÜFÜS DU SOL','House',578,122,71,67,'Euphoric'],['Glue','Bicep','Electronic',269,129,79,64,'Euphoric'],['Electric Feel','MGMT','Indie',229,103,80,87,'Euphoric'],['1901','Phoenix','Indie',193,144,91,84,'Euphoric'],['Loud Places','Jamie xx','Electronic',283,116,75,73,'Euphoric'],['The Less I Know the Better','Tame Impala','Indie',216,117,76,78,'Euphoric'],['One More Time','Daft Punk','House',320,123,92,91,'Euphoric'],['You & Me (Flume Remix)','Disclosure','Electronic',282,75,81,70,'Euphoric'],
-['Space Song','Beach House','Dream Pop',320,147,44,30,'Dreamy'],['Myth','Beach House','Dream Pop',258,112,55,41,'Dreamy'],['Intro','The xx','Indie',127,100,35,42,'Dreamy'],['Apocalypse','Cigarettes After Sex','Dream Pop',290,94,24,30,'Dreamy'],['Holocene','Bon Iver','Indie',336,148,31,28,'Dreamy'],['Cherry-coloured Funk','Cocteau Twins','Dream Pop',193,95,42,58,'Dreamy'],['Dreams Tonite','Alvvays','Indie',196,102,49,60,'Dreamy'],['Wait','M83','Ambient',343,85,28,32,'Dreamy'],['K.','Cigarettes After Sex','Dream Pop',320,95,26,37,'Dreamy'],['Bloom','The Paper Kites','Indie',210,95,28,66,'Dreamy'],
-['Motion Picture Soundtrack','Radiohead','Alternative',200,63,17,13,'Melancholic'],['Fourth of July','Sufjan Stevens','Indie',279,79,18,12,'Melancholic'],['The Night We Met','Lord Huron','Indie',208,174,30,19,'Melancholic'],['Moon Song','Phoebe Bridgers','Indie',277,78,20,17,'Melancholic'],['Roslyn','Bon Iver & St. Vincent','Indie',289,92,20,21,'Melancholic'],['No Surprises','Radiohead','Alternative',229,76,38,25,'Melancholic'],['Liability','Lorde','Pop',172,72,22,20,'Melancholic'],['To Build a Home','The Cinematic Orchestra','Classical',373,75,28,22,'Melancholic'],['Retrograde','James Blake','Electronic',223,78,41,32,'Melancholic'],['Youth','Daughter','Indie',253,119,38,24,'Melancholic'],
-['Nights','Frank Ocean','R&B',307,90,52,45,'Late Night'],['After Dark','Mr.Kitty','Electronic',258,140,64,42,'Late Night'],['Nightcall','Kavinsky','Electronic',258,91,67,41,'Late Night'],['Kerala','Bonobo','Electronic',237,120,60,57,'Late Night'],['Late Night','Odesza','Electronic',229,124,68,65,'Late Night'],['A New Error','Moderat','Electronic',367,125,65,38,'Late Night'],['Teardrop','Massive Attack','Trip-Hop',330,76,39,33,'Late Night'],['Roads','Portishead','Trip-Hop',302,72,27,20,'Late Night'],['Angel','Massive Attack','Trip-Hop',379,107,61,24,'Late Night'],['Night Owl','Gerry Rafferty','Soft Rock',385,110,62,55,'Late Night']
+  ["Weightless", "Marconi Union", "Ambient", 489, 60, 15, 45, "Focus"],
+  ["A Walk", "Tycho", "Electronic", 317, 100, 45, 68, "Focus"],
+  ["First Breath After Coma", "Explosions in the Sky", "Post-Rock", 573, 80, 48, 40, "Focus"],
+  ["Open Eye Signal", "Jon Hopkins", "Electronic", 472, 123, 72, 52, "Focus"],
+  ["Says", "Nils Frahm", "Ambient", 482, 90, 35, 45, "Focus"],
+  ["Near Light", "Ólafur Arnalds", "Classical", 208, 72, 22, 38, "Focus"],
+  ["Cirrus", "Bonobo", "Electronic", 352, 100, 55, 62, "Focus"],
+  ["Dayvan Cowboy", "Boards of Canada", "Electronic", 300, 84, 42, 55, "Focus"],
+  ["Experience", "Ludovico Einaudi", "Classical", 315, 90, 40, 48, "Focus"],
+  ["An Ending (Ascent)", "Brian Eno", "Ambient", 266, 65, 12, 51, "Focus"],
+  ["Sunset Lover", "Petit Biscuit", "Electronic", 198, 91, 45, 70, "Chill"],
+  ["Tadow", "Masego & FKJ", "Jazz", 302, 122, 55, 75, "Chill"],
+  ["Show Me How", "Men I Trust", "Indie", 215, 100, 32, 48, "Chill"],
+  ["Friday Morning", "Khruangbin", "Soul", 410, 80, 30, 65, "Chill"],
+  ["Pink + White", "Frank Ocean", "R&B", 184, 160, 49, 64, "Chill"],
+  ["Get You", "Daniel Caesar", "R&B", 278, 74, 30, 54, "Chill"],
+  ["Loving Is Easy", "Rex Orange County", "Indie", 155, 117, 62, 90, "Chill"],
+  ["Coffee", "beabadoobee", "Indie", 126, 90, 25, 55, "Chill"],
+  ["Telescope", "Cage the Elephant", "Indie", 228, 94, 48, 53, "Chill"],
+  ["Breathe", "Télépopmusik", "Electronic", 278, 100, 35, 63, "Chill"],
+  ["Midnight City", "M83", "Electronic", 244, 105, 82, 80, "Euphoric"],
+  ["Something About Us", "Daft Punk", "Electronic", 232, 100, 50, 72, "Euphoric"],
+  ["Innerbloom", "RÜFÜS DU SOL", "House", 578, 122, 71, 67, "Euphoric"],
+  ["Glue", "Bicep", "Electronic", 269, 129, 79, 64, "Euphoric"],
+  ["Electric Feel", "MGMT", "Indie", 229, 103, 80, 87, "Euphoric"],
+  ["1901", "Phoenix", "Indie", 193, 144, 91, 84, "Euphoric"],
+  ["Loud Places", "Jamie xx", "Electronic", 283, 116, 75, 73, "Euphoric"],
+  ["The Less I Know the Better", "Tame Impala", "Indie", 216, 117, 76, 78, "Euphoric"],
+  ["One More Time", "Daft Punk", "House", 320, 123, 92, 91, "Euphoric"],
+  ["You & Me (Flume Remix)", "Disclosure", "Electronic", 282, 75, 81, 70, "Euphoric"],
+  ["Space Song", "Beach House", "Dream Pop", 320, 147, 44, 30, "Dreamy"],
+  ["Myth", "Beach House", "Dream Pop", 258, 112, 55, 41, "Dreamy"],
+  ["Intro", "The xx", "Indie", 127, 100, 35, 42, "Dreamy"],
+  ["Apocalypse", "Cigarettes After Sex", "Dream Pop", 290, 94, 24, 30, "Dreamy"],
+  ["Holocene", "Bon Iver", "Indie", 336, 148, 31, 28, "Dreamy"],
+  ["Cherry-coloured Funk", "Cocteau Twins", "Dream Pop", 193, 95, 42, 58, "Dreamy"],
+  ["Dreams Tonite", "Alvvays", "Indie", 196, 102, 49, 60, "Dreamy"],
+  ["Wait", "M83", "Ambient", 343, 85, 28, 32, "Dreamy"],
+  ["K.", "Cigarettes After Sex", "Dream Pop", 320, 95, 26, 37, "Dreamy"],
+  ["Bloom", "The Paper Kites", "Indie", 210, 95, 28, 66, "Dreamy"],
+  ["Motion Picture Soundtrack", "Radiohead", "Alternative", 200, 63, 17, 13, "Melancholic"],
+  ["Fourth of July", "Sufjan Stevens", "Indie", 279, 79, 18, 12, "Melancholic"],
+  ["The Night We Met", "Lord Huron", "Indie", 208, 174, 30, 19, "Melancholic"],
+  ["Moon Song", "Phoebe Bridgers", "Indie", 277, 78, 20, 17, "Melancholic"],
+  ["Roslyn", "Bon Iver & St. Vincent", "Indie", 289, 92, 20, 21, "Melancholic"],
+  ["No Surprises", "Radiohead", "Alternative", 229, 76, 38, 25, "Melancholic"],
+  ["Liability", "Lorde", "Pop", 172, 72, 22, 20, "Melancholic"],
+  ["To Build a Home", "The Cinematic Orchestra", "Classical", 373, 75, 28, 22, "Melancholic"],
+  ["Retrograde", "James Blake", "Electronic", 223, 78, 41, 32, "Melancholic"],
+  ["Youth", "Daughter", "Indie", 253, 119, 38, 24, "Melancholic"],
+  ["Nights", "Frank Ocean", "R&B", 307, 90, 52, 45, "Late Night"],
+  ["After Dark", "Mr.Kitty", "Electronic", 258, 140, 64, 42, "Late Night"],
+  ["Nightcall", "Kavinsky", "Electronic", 258, 91, 67, 41, "Late Night"],
+  ["Kerala", "Bonobo", "Electronic", 237, 120, 60, 57, "Late Night"],
+  ["Late Night", "Odesza", "Electronic", 229, 124, 68, 65, "Late Night"],
+  ["A New Error", "Moderat", "Electronic", 367, 125, 65, 38, "Late Night"],
+  ["Teardrop", "Massive Attack", "Trip-Hop", 330, 76, 39, 33, "Late Night"],
+  ["Roads", "Portishead", "Trip-Hop", 302, 72, 27, 20, "Late Night"],
+  ["Angel", "Massive Attack", "Trip-Hop", 379, 107, 61, 24, "Late Night"],
+  ["Night Owl", "Gerry Rafferty", "Soft Rock", 385, 110, 62, 55, "Late Night"],
 ];
-export const tracks: Track[] = records.map((r, i) => ({ id: `track-${i+1}`, title:r[0], artist:r[1], genre:r[2], duration:r[3], tempo:r[4], energy:r[5], valence:r[6], mood:r[7], artwork: [forest,pink,blue,mountain][Math.floor(i/10)%4] ?? mountain }));
-export const genres = [...new Set(tracks.map(t => t.genre))].sort();
-export const defaultSettings: PlaylistSettings = { mood:'Dreamy', energy:45, valence:50, genres:[], duration:30, artistGap:1, smoothness:80, algorithm:'Greedy' };
-export const moodDescriptions: Record<Mood,string> = { Focus:'Find your flow', Chill:'Take it down a notch', Euphoric:'A little higher', Melancholic:'Feel it all', Dreamy:'Somewhere else', 'Late Night':'After the world sleeps' };
-export function time(seconds:number) { return `${Math.floor(seconds/60)}:${String(Math.round(seconds%60)).padStart(2,'0')}`; }
-export function minutes(seconds:number) { return `${Math.round(seconds/60)} min`; }
+export const tracks: Track[] = records.map((r, i) => ({
+  id: `track-${i + 1}`,
+  title: r[0],
+  artist: r[1],
+  genre: r[2],
+  duration: r[3],
+  tempo: r[4],
+  energy: r[5] / 100,
+  valence: r[6] / 100,
+  mood: r[7],
+  artwork: [forest, pink, blue, mountain][Math.floor(i / 10) % 4] ?? mountain,
+}));
+export const genres = [...new Set(tracks.map((t) => t.genre))].sort();
+export const defaultSettings: PlaylistSettings = {
+  mood: "Dreamy",
+  energy: 45,
+  valence: 50,
+  genres: [],
+  duration: 30,
+  artistGap: 1,
+  smoothness: 80,
+  algorithm: "Greedy",
+};
+export const moodDescriptions: Record<Mood, string> = {
+  Focus: "Find your flow",
+  Chill: "Take it down a notch",
+  Euphoric: "A little higher",
+  Melancholic: "Feel it all",
+  Dreamy: "Somewhere else",
+  "Late Night": "After the world sleeps",
+};
+export function time(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, "0")}`;
+}
+export function minutes(seconds: number) {
+  return `${Math.round(seconds / 60)} min`;
+}

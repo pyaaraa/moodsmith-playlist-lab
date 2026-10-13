@@ -1,17 +1,330 @@
-import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { ArrowRight, Sparkles, AudioLines, Clock, Check, SlidersHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { defaultSettings, tracks, genres, artwork, minutes } from '@/data/library';
-import { algorithmService, algorithms } from '@/services/algorithm';
-import { useMusic } from '@/state/music';
-import { Art, MoodCards, PageHeader, TrackRow } from '@/components/moodmix/shared';
-import type { Mood, PlaylistSettings } from '@/types/music';
-export function Builder({mood,start}:{mood?:Mood|undefined;start?:string|undefined}){
- const {activate,preferences}=useMusic();const navigate=useNavigate();const [settings,setSettings]=useState<PlaylistSettings>({...defaultSettings,algorithm:preferences.defaultAlgorithm,...(mood?{mood}:{}),...(start?{startingTrack:start}:{})});const [error,setError]=useState(''),[busy,setBusy]=useState(false);
- const change=<K extends keyof PlaylistSettings>(key:K,value:PlaylistSettings[K])=>{setSettings(s=>({...s,[key]:value}));setError('');};
- const candidates=tracks.filter(t=>!settings.genres.length||settings.genres.includes(t.genre)).sort((a,b)=>(Math.abs(a.energy-settings.energy)+(a.mood===settings.mood?0:30))-(Math.abs(b.energy-settings.energy)+(b.mood===settings.mood?0:30))).slice(0,4);
- async function generate(){setBusy(true);setError('');try{const p=await algorithmService.generate(settings);activate(p);await navigate({to:'/mix'});}catch(e){setError(e instanceof Error?e.message:'The mix could not be generated.');}finally{setBusy(false);}}
- return <><PageHeader eyebrow="MAKE SOMETHING THAT MOVES YOU" title="Your mood. Your mix." description="Choose the feeling. Shape the journey. Let the music connect."/><div className="builder-layout"><div className="builder-form"><div className="form-section"><div className="form-section-title"><span>01</span><h2>Set the mood</h2></div><MoodCards selected={settings.mood} onSelect={m=>change('mood',m)} compact/></div><div className="form-section"><div className="form-section-title"><span>02</span><h2>Find your balance</h2></div><Range label="Energy" value={settings.energy} onChange={v=>change('energy',v)} left="Calm" middle="Balanced" right="Intense"/><Range label="Valence" value={settings.valence} onChange={v=>change('valence',v)} left="Melancholic" right="Bright & positive"/><Range label="Transition smoothness" value={settings.smoothness} onChange={v=>change('smoothness',v)} left="More variety" right="More continuity"/></div><div className="form-section"><div className="form-section-title"><span>03</span><h2>Make it yours</h2></div><label className="field-label">Genres <small>Choose any, or leave open</small></label><div className="genre-chips">{genres.map(g=><Button variant="outline" size="sm" key={g} className={settings.genres.includes(g)?'selected':''} onClick={()=>change('genres',settings.genres.includes(g)?settings.genres.filter(x=>x!==g):[...settings.genres,g])} aria-pressed={settings.genres.includes(g)}>{settings.genres.includes(g)&&<Check size={12}/>} {g}</Button>)}</div><div className="fields-grid"><label className="field-label">Target duration<div className="duration-control"><input type="number" min={5} max={120} aria-label="Target duration in minutes" value={settings.duration} onChange={e=>change('duration',Number(e.target.value))}/><span>minutes</span></div></label><label className="field-label">Artist diversity<select value={settings.artistGap} onChange={e=>change('artistGap',Number(e.target.value))}><option value={1}>No consecutive repeats</option><option value={0}>Allow consecutive artists</option></select></label></div><div className="duration-presets">{[15,30,45,60].map(n=><Button size="sm" variant="ghost" className={settings.duration===n?'selected':''} key={n} onClick={()=>change('duration',n)}>{n} min</Button>)}</div><label className="field-label">Opening track <small>Optional</small><select aria-label="Starting track" value={settings.startingTrack??''} onChange={e=>change('startingTrack',e.target.value||undefined)}><option value="">Let MoodMix choose</option>{tracks.map(t=><option key={t.id} value={t.id}>{t.title} — {t.artist}</option>)}</select></label></div><div className="form-section"><div className="form-section-title"><span>04</span><h2>Choose your approach</h2></div><div className="algorithm-options">{algorithms.map(a=><Button variant="outline" key={a} onClick={()=>change('algorithm',a)} className={`algorithm-choice ${settings.algorithm===a?'selected':''}`} aria-pressed={settings.algorithm===a}><span className="algorithm-radio">{settings.algorithm===a&&<span/>}</span><span><strong>{a}</strong><small>{a==='Greedy'?'Fast heuristic · A great place to start':'Exact fixed-set sequencing · Up to 10 tracks'}</small></span></Button>)}</div><p className="small-note">{algorithmService.explanation(settings.algorithm).summary} Track selection is always a mood-fit heuristic; exact guarantees apply only to ordering the chosen tracks.</p></div>{error&&<div className="error-message" role="alert">{error}</div>}<Button size="lg" className="generate-button" onClick={generate} disabled={busy}><Sparkles/>{busy?'Connecting your tracks…':'Generate My Mix'}<ArrowRight/></Button></div><aside className="mix-preview"><div className="preview-cover"><Art src={settings.mood==='Chill'||settings.mood==='Euphoric'?artwork.pink:settings.mood==='Focus'?artwork.forest:artwork.mountain} alt="Mix mood editorial artwork"/><div><div className="eyebrow">YOUR NEXT JOURNEY</div><h2>{settings.mood}<br/>State of Mind</h2><span><AudioLines size={15}/> Made for you. By MoodMix.</span></div></div><div className="preview-summary"><div className="section-heading"><h3>The shape of your mix</h3><SlidersHorizontal size={16}/></div><div className="summary-grid"><div><small>MOOD</small><strong>{settings.mood}</strong></div><div><small>DURATION</small><strong>{settings.duration} minutes</strong></div><div><small>ENERGY</small><strong>{settings.energy} / 100</strong></div><div><small>VALENCE</small><strong>{settings.valence} / 100</strong></div><div><small>CONTINUITY</small><strong>{settings.smoothness}%</strong></div><div><small>ARTISTS</small><strong>{settings.artistGap?'No repeats':'Open flow'}</strong></div></div><div className="summary-genres">{settings.genres.length?settings.genres.join(' · '):'All genres welcome'}</div><div className="preview-divider"/><h3>Possible connections</h3><p className="small-note">Mood-fit suggestions, not a generated sequence.</p>{candidates.map(t=><TrackRow key={t.id} track={t}/>)}<div className="preview-foot"><Clock size={14}/>{settings.algorithm} sequencing</div></div></aside></div></>;
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { ArrowRight, Sparkles, AudioLines, Clock, Check, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { defaultSettings, tracks, genres, artwork, minutes } from "@/data/library";
+import { algorithmService, algorithms } from "@/services/algorithm";
+import { useMusic } from "@/state/music";
+import { Art, MoodCards, PageHeader, TrackRow } from "@/components/moodmix/shared";
+import type { Mood, PlaylistSettings } from "@/types/music";
+export function Builder({ mood, start }: { mood?: Mood | undefined; start?: string | undefined }) {
+  const { activate, preferences } = useMusic();
+  const navigate = useNavigate();
+  const [settings, setSettings] = useState<PlaylistSettings>({
+    ...defaultSettings,
+    algorithm: preferences.defaultAlgorithm,
+    ...(mood ? { mood } : {}),
+    ...(start ? { startingTrack: start } : {}),
+  });
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const change = <K extends keyof PlaylistSettings>(key: K, value: PlaylistSettings[K]) => {
+    setSettings((s) => ({ ...s, [key]: value }));
+    setError("");
+  };
+  const candidates = tracks
+    .filter((t) => !settings.genres.length || settings.genres.includes(t.genre))
+    .sort(
+      (a, b) =>
+        Math.abs(a.energy * 100 - settings.energy) +
+        (a.mood === settings.mood ? 0 : 30) -
+        (Math.abs(b.energy * 100 - settings.energy) + (b.mood === settings.mood ? 0 : 30)),
+    )
+    .slice(0, 4);
+  async function generate() {
+    setBusy(true);
+    setError("");
+    try {
+      const p = await algorithmService.generate(settings);
+      activate(p);
+      await navigate({ to: "/mix" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The mix could not be generated.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      <PageHeader
+        eyebrow="MAKE SOMETHING THAT MOVES YOU"
+        title="Your mood. Your mix."
+        description="Choose the feeling. Shape the journey. Let the music connect."
+      />
+      <div className="builder-layout">
+        <div className="builder-form">
+          <div className="form-section">
+            <div className="form-section-title">
+              <span>01</span>
+              <h2>Set the mood</h2>
+            </div>
+            <MoodCards selected={settings.mood} onSelect={(m) => change("mood", m)} compact />
+          </div>
+          <div className="form-section">
+            <div className="form-section-title">
+              <span>02</span>
+              <h2>Find your balance</h2>
+            </div>
+            <Range
+              label="Energy"
+              value={settings.energy}
+              onChange={(v) => change("energy", v)}
+              left="Calm"
+              middle="Balanced"
+              right="Intense"
+            />
+            <Range
+              label="Valence"
+              value={settings.valence}
+              onChange={(v) => change("valence", v)}
+              left="Melancholic"
+              right="Bright & positive"
+            />
+            <Range
+              label="Transition smoothness"
+              value={settings.smoothness}
+              onChange={(v) => change("smoothness", v)}
+              left="More variety"
+              right="More continuity"
+            />
+          </div>
+          <div className="form-section">
+            <div className="form-section-title">
+              <span>03</span>
+              <h2>Make it yours</h2>
+            </div>
+            <label className="field-label">
+              Genres <small>Choose any, or leave open</small>
+            </label>
+            <div className="genre-chips">
+              {genres.map((g) => (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  key={g}
+                  className={settings.genres.includes(g) ? "selected" : ""}
+                  onClick={() =>
+                    change(
+                      "genres",
+                      settings.genres.includes(g)
+                        ? settings.genres.filter((x) => x !== g)
+                        : [...settings.genres, g],
+                    )
+                  }
+                  aria-pressed={settings.genres.includes(g)}
+                >
+                  {settings.genres.includes(g) && <Check size={12} />} {g}
+                </Button>
+              ))}
+            </div>
+            <div className="fields-grid">
+              <label className="field-label">
+                Target duration
+                <div className="duration-control">
+                  <input
+                    type="number"
+                    min={5}
+                    max={120}
+                    aria-label="Target duration in minutes"
+                    value={settings.duration}
+                    onChange={(e) => change("duration", Number(e.target.value))}
+                  />
+                  <span>minutes</span>
+                </div>
+              </label>
+              <label className="field-label">
+                Artist diversity
+                <select
+                  value={settings.artistGap}
+                  onChange={(e) => change("artistGap", Number(e.target.value))}
+                >
+                  <option value={1}>No consecutive repeats</option>
+                  <option value={0}>Allow consecutive artists</option>
+                </select>
+              </label>
+            </div>
+            <div className="duration-presets">
+              {[15, 30, 45, 60].map((n) => (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={settings.duration === n ? "selected" : ""}
+                  key={n}
+                  onClick={() => change("duration", n)}
+                >
+                  {n} min
+                </Button>
+              ))}
+            </div>
+            <label className="field-label">
+              Opening track <small>Optional</small>
+              <select
+                aria-label="Starting track"
+                value={settings.startingTrack ?? ""}
+                onChange={(e) => change("startingTrack", e.target.value || undefined)}
+              >
+                <option value="">Let MoodMix choose</option>
+                {tracks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} — {t.artist}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="form-section">
+            <div className="form-section-title">
+              <span>04</span>
+              <h2>Choose your approach</h2>
+            </div>
+            <div className="algorithm-options">
+              {algorithms.map((a) => (
+                <Button
+                  variant="outline"
+                  key={a}
+                  onClick={() => change("algorithm", a)}
+                  className={`algorithm-choice ${settings.algorithm === a ? "selected" : ""}`}
+                  aria-pressed={settings.algorithm === a}
+                >
+                  <span className="algorithm-radio">{settings.algorithm === a && <span />}</span>
+                  <span>
+                    <strong>{a}</strong>
+                    <small>
+                      {a === "Greedy"
+                        ? "Fast heuristic · A great place to start"
+                        : "Exact fixed-set sequencing · Up to 10 tracks"}
+                    </small>
+                  </span>
+                </Button>
+              ))}
+            </div>
+            <p className="small-note">
+              {algorithmService.explanation(settings.algorithm).summary} Track selection is always a
+              mood-fit heuristic; exact guarantees apply only to ordering the chosen tracks.
+            </p>
+          </div>
+          {error && (
+            <div className="error-message" role="alert">
+              {error}
+            </div>
+          )}
+          <Button size="lg" className="generate-button" onClick={generate} disabled={busy}>
+            <Sparkles />
+            {busy ? "Connecting your tracks…" : "Generate My Mix"}
+            <ArrowRight />
+          </Button>
+        </div>
+        <aside className="mix-preview">
+          <div className="preview-cover">
+            <Art
+              src={
+                settings.mood === "Chill" || settings.mood === "Euphoric"
+                  ? artwork.pink
+                  : settings.mood === "Focus"
+                    ? artwork.forest
+                    : artwork.mountain
+              }
+              alt="Mix mood editorial artwork"
+            />
+            <div>
+              <div className="eyebrow">YOUR NEXT JOURNEY</div>
+              <h2>
+                {settings.mood}
+                <br />
+                State of Mind
+              </h2>
+              <span>
+                <AudioLines size={15} /> Made for you. By MoodMix.
+              </span>
+            </div>
+          </div>
+          <div className="preview-summary">
+            <div className="section-heading">
+              <h3>The shape of your mix</h3>
+              <SlidersHorizontal size={16} />
+            </div>
+            <div className="summary-grid">
+              <div>
+                <small>MOOD</small>
+                <strong>{settings.mood}</strong>
+              </div>
+              <div>
+                <small>DURATION</small>
+                <strong>{settings.duration} minutes</strong>
+              </div>
+              <div>
+                <small>ENERGY</small>
+                <strong>{settings.energy} / 100</strong>
+              </div>
+              <div>
+                <small>VALENCE</small>
+                <strong>{settings.valence} / 100</strong>
+              </div>
+              <div>
+                <small>CONTINUITY</small>
+                <strong>{settings.smoothness}%</strong>
+              </div>
+              <div>
+                <small>ARTISTS</small>
+                <strong>{settings.artistGap ? "No repeats" : "Open flow"}</strong>
+              </div>
+            </div>
+            <div className="summary-genres">
+              {settings.genres.length ? settings.genres.join(" · ") : "All genres welcome"}
+            </div>
+            <div className="preview-divider" />
+            <h3>Possible connections</h3>
+            <p className="small-note">Mood-fit suggestions, not a generated sequence.</p>
+            {candidates.map((t) => (
+              <TrackRow key={t.id} track={t} />
+            ))}
+            <div className="preview-foot">
+              <Clock size={14} />
+              {settings.algorithm} sequencing
+            </div>
+          </div>
+        </aside>
+      </div>
+    </>
+  );
 }
-export function Range({label,value,onChange,left,middle,right}:{label:string;value:number;onChange:(v:number)=>void;left:string;middle?:string;right:string}){return <div className="range-field"><label htmlFor={label.replaceAll(' ','-')}>{label}<span>{value}<small>/100</small></span></label><input id={label.replaceAll(' ','-')} type="range" min={0} max={100} value={value} onChange={e=>onChange(Number(e.target.value))}/><div className="range-labels"><span>{left}</span>{middle&&<span>{middle}</span>}<span>{right}</span></div></div>;}
+export function Range({
+  label,
+  value,
+  onChange,
+  left,
+  middle,
+  right,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  left: string;
+  middle?: string;
+  right: string;
+}) {
+  return (
+    <div className="range-field">
+      <label htmlFor={label.replaceAll(" ", "-")}>
+        {label}
+        <span>
+          {value}
+          <small>/100</small>
+        </span>
+      </label>
+      <input
+        id={label.replaceAll(" ", "-")}
+        type="range"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <div className="range-labels">
+        <span>{left}</span>
+        {middle && <span>{middle}</span>}
+        <span>{right}</span>
+      </div>
+    </div>
+  );
+}

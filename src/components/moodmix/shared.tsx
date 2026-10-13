@@ -1,17 +1,276 @@
-import { useState, type ReactNode } from 'react';
-import { Link } from '@tanstack/react-router';
-import { ArrowUpRight, ArrowRight, AudioLines, Sparkles, Headphones, Moon, Sun, Cloud, Leaf, Heart, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { artwork, time, minutes, moodDescriptions } from '@/data/library';
-import { moods, type Mood, type Track, type Playlist } from '@/types/music';
-import { useMusic } from '@/state/music';
-export const moodIcons={Focus:Headphones,Chill:Leaf,Euphoric:Sun,Melancholic:Heart,Dreamy:Cloud,'Late Night':Moon};
-export function Art({src,alt,className='',eager=false}:{src:string;alt:string;className?:string;eager?:boolean}){const [failed,setFailed]=useState(false);return <img src={failed?artwork.mountain:src} onError={()=>setFailed(true)} alt={alt} className={className} loading={eager?'eager':'lazy'} width={1024} height={1024}/>;}
-export function PageHeader({eyebrow,title,description,action}:{eyebrow:string;title:string;description:string;action?:ReactNode}){return <header className="page-heading"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div>{action}</header>;}
-export function SectionHeading({title,description,children}:{title:string;description?:string;children?:ReactNode}){return <div className="section-heading"><div><h2>{title}</h2>{description&&<p>{description}</p>}</div>{children}</div>;}
-export function MoodCards({selected,onSelect,compact=false}:{selected?:Mood;onSelect?:(m:Mood)=>void;compact?:boolean}){return <div className={`mood-grid ${compact?'compact':''}`}>{moods.map(m=>{const Icon=moodIcons[m];const content=<><span className="mood-icon"><Icon size={21}/></span><span className="mood-name">{m}</span>{!compact&&<span className="mood-description">{moodDescriptions[m]}</span>}</>;return onSelect?<Button key={m} variant="ghost" className={`mood-card mood-${m.toLowerCase().replace(' ','-')} ${selected===m?'selected':''}`} onClick={()=>onSelect(m)} aria-pressed={selected===m}>{content}</Button>:<Link to="/create" search={{mood:m}} key={m} className={`mood-card mood-${m.toLowerCase().replace(' ','-')}`}>{content}</Link>;})}</div>;}
-export function MixCard({title,subtitle,image,mood,playlist}:{title:string;subtitle:string;image:string;mood:Mood;playlist?:Playlist}){const {activate}=useMusic();return <Link to={playlist?'/mix':'/create'} search={playlist?{}:{mood}} onClick={()=>playlist&&activate(playlist)} className="mix-card group"><div className="mix-art"><Art src={image} alt={`${title} editorial artwork`}/><span className="art-arrow"><ArrowUpRight size={22}/></span><span className="art-tag">{mood}</span></div><h3>{title}</h3><p>{subtitle}</p></Link>;}
-export function TrackRow({track,index,onSelect,children}:{track:Track;index?:number;onSelect?:(t:Track)=>void;children?:ReactNode}){return <div className="track-row">{index!==undefined&&<span className="track-index">{String(index+1).padStart(2,'0')}</span>}<Art src={track.artwork} alt={`${track.title} sample artwork`} className="track-art"/><div className="track-name">{onSelect?<Button variant="link" className="track-title" onClick={()=>onSelect(track)}>{track.title}</Button>:<strong>{track.title}</strong>}<span>{track.artist}</span></div><span className="track-genre">{track.genre}</span><span className="track-tempo">{track.tempo} <small>BPM</small></span><span className="track-duration">{time(track.duration)}</span>{children}</div>;}
-export function TrackDetails({track,onClose}:{track:Track|null;onClose:()=>void}){if(!track)return null;return <div className="modal-backdrop" onClick={onClose}><div className="modal" role="dialog" aria-modal="true" aria-label="Track details" onClick={e=>e.stopPropagation()}><Button variant="ghost" size="icon" className="modal-close" aria-label="Close track details" onClick={onClose}><X/></Button><Art src={track.artwork} alt={track.title} className="detail-art"/><div className="eyebrow">Sample music library</div><h2>{track.title}</h2><p>{track.artist}</p><div className="track-detail-metrics"><span>{track.genre}</span><span>{track.tempo} BPM</span><span>{time(track.duration)}</span><span>Energy {track.energy}</span><span>Valence {track.valence}</span><span>{track.mood}</span></div><p className="small-note">Illustrative audio features and editorial artwork. Audio preview unavailable.</p><Button asChild className="w-full"><Link to="/create" search={{mood:track.mood,start:track.id}}><Sparkles/>Start a mix with this track<ArrowRight/></Link></Button></div></div>;}
-export function EmptyState({title,description}:{title:string;description:string}){return <div className="empty-state"><AudioLines size={36}/><h2>{title}</h2><p>{description}</p><Button asChild><Link to="/create"><Sparkles/>Create a Mix</Link></Button></div>;}
-export function Stats({playlist}:{playlist:Playlist}){return <span>{playlist.tracks.length} tracks · {minutes(playlist.tracks.reduce((a,t)=>a+t.duration,0))}</span>;}
+import { useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  AudioLines,
+  Sparkles,
+  Headphones,
+  Moon,
+  Sun,
+  Cloud,
+  Leaf,
+  Heart,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { artwork, time, minutes, moodDescriptions } from "@/data/library";
+import { moods, type Mood, type Track, type Playlist } from "@/types/music";
+import { useMusic } from "@/state/music";
+export const moodIcons = {
+  Focus: Headphones,
+  Chill: Leaf,
+  Euphoric: Sun,
+  Melancholic: Heart,
+  Dreamy: Cloud,
+  "Late Night": Moon,
+};
+export function Art({
+  src,
+  alt,
+  className = "",
+  eager = false,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  eager?: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <img
+      src={failed ? artwork.mountain : src}
+      onError={() => setFailed(true)}
+      alt={alt}
+      className={className}
+      loading={eager ? "eager" : "lazy"}
+      width={1024}
+      height={1024}
+    />
+  );
+}
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <header className="page-heading">
+      <div>
+        <div className="eyebrow">{eyebrow}</div>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+      {action}
+    </header>
+  );
+}
+export function SectionHeading({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="section-heading">
+      <div>
+        <h2>{title}</h2>
+        {description && <p>{description}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+export function MoodCards({
+  selected,
+  onSelect,
+  compact = false,
+}: {
+  selected?: Mood;
+  onSelect?: (m: Mood) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`mood-grid ${compact ? "compact" : ""}`}>
+      {moods.map((m) => {
+        const Icon = moodIcons[m];
+        const content = (
+          <>
+            <span className="mood-icon">
+              <Icon size={21} />
+            </span>
+            <span className="mood-name">{m}</span>
+            {!compact && <span className="mood-description">{moodDescriptions[m]}</span>}
+          </>
+        );
+        return onSelect ? (
+          <Button
+            key={m}
+            variant="ghost"
+            className={`mood-card mood-${m.toLowerCase().replace(" ", "-")} ${selected === m ? "selected" : ""}`}
+            onClick={() => onSelect(m)}
+            aria-pressed={selected === m}
+          >
+            {content}
+          </Button>
+        ) : (
+          <Link
+            to="/create"
+            search={{ mood: m }}
+            key={m}
+            className={`mood-card mood-${m.toLowerCase().replace(" ", "-")}`}
+          >
+            {content}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+export function MixCard({
+  title,
+  subtitle,
+  image,
+  mood,
+  playlist,
+}: {
+  title: string;
+  subtitle: string;
+  image: string;
+  mood: Mood;
+  playlist?: Playlist;
+}) {
+  const { activate } = useMusic();
+  return (
+    <Link
+      to={playlist ? "/mix" : "/create"}
+      search={playlist ? {} : { mood }}
+      onClick={() => playlist && activate(playlist)}
+      className="mix-card group"
+    >
+      <div className="mix-art">
+        <Art src={image} alt={`${title} editorial artwork`} />
+        <span className="art-arrow">
+          <ArrowUpRight size={22} />
+        </span>
+        <span className="art-tag">{mood}</span>
+      </div>
+      <h3>{title}</h3>
+      <p>{subtitle}</p>
+    </Link>
+  );
+}
+export function TrackRow({
+  track,
+  index,
+  onSelect,
+  children,
+}: {
+  track: Track;
+  index?: number;
+  onSelect?: (t: Track) => void;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="track-row">
+      {index !== undefined && (
+        <span className="track-index">{String(index + 1).padStart(2, "0")}</span>
+      )}
+      <Art src={track.artwork} alt={`${track.title} sample artwork`} className="track-art" />
+      <div className="track-name">
+        {onSelect ? (
+          <Button variant="link" className="track-title" onClick={() => onSelect(track)}>
+            {track.title}
+          </Button>
+        ) : (
+          <strong>{track.title}</strong>
+        )}
+        <span>{track.artist}</span>
+      </div>
+      <span className="track-genre">{track.genre}</span>
+      <span className="track-tempo">
+        {track.tempo} <small>BPM</small>
+      </span>
+      <span className="track-duration">{time(track.duration)}</span>
+      {children}
+    </div>
+  );
+}
+export function TrackDetails({ track, onClose }: { track: Track | null; onClose: () => void }) {
+  if (!track) return null;
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Track details"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="modal-close"
+          aria-label="Close track details"
+          onClick={onClose}
+        >
+          <X />
+        </Button>
+        <Art src={track.artwork} alt={track.title} className="detail-art" />
+        <div className="eyebrow">Sample music library</div>
+        <h2>{track.title}</h2>
+        <p>{track.artist}</p>
+        <div className="track-detail-metrics">
+          <span>{track.genre}</span>
+          <span>{track.tempo} BPM</span>
+          <span>{time(track.duration)}</span>
+          <span>Energy {Math.round(track.energy * 100)}</span>
+          <span>Valence {Math.round(track.valence * 100)}</span>
+          <span>{track.mood}</span>
+        </div>
+        <p className="small-note">
+          Illustrative audio features and editorial artwork. Audio preview unavailable.
+        </p>
+        <Button asChild className="w-full">
+          <Link to="/create" search={{ mood: track.mood, start: track.id }}>
+            <Sparkles />
+            Start a mix with this track
+            <ArrowRight />
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+export function EmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="empty-state">
+      <AudioLines size={36} />
+      <h2>{title}</h2>
+      <p>{description}</p>
+      <Button asChild>
+        <Link to="/create">
+          <Sparkles />
+          Create a Mix
+        </Link>
+      </Button>
+    </div>
+  );
+}
+export function Stats({ playlist }: { playlist: Playlist }) {
+  return (
+    <span>
+      {playlist.tracks.length} tracks ·{" "}
+      {minutes(playlist.tracks.reduce((a, t) => a + t.duration, 0))}
+    </span>
+  );
+}
